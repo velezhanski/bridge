@@ -11,6 +11,8 @@
   "author": "Alex Filipenko",
   "license": "ISC",
   "scripts": {
+    "dev": "node server.js",
+    "postinstall": "npm run build",
     "prestart": "pnm run build",
     "build": "tsc",
     "heroku-postbuild": "npm run build",
