@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "node server.js",
     "postinstall": "npm run build",
-    "prestart": "pnm run build",
+    "prestart": "npm run build",
     "build": "tsc",
     "heroku-postbuild": "npm run build",
     "start": "nodemon",
