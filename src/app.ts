@@ -12,7 +12,8 @@ async function startServer() {
   app.use(bot.webhookCallback(`/bot${config.telegram.token}`));
   
   bot.start((ctx) => ctx.reply('Добро пожаловать в сервис Bridge! Как вас зовут?'))
-  bot.on('message', (ctx) =>  ctx.reply(`Привет, ${ctx.message.text}!`))
+  bot.on('message', (ctx) =>  console.log("THIS IS THE TEXT:" + ctx.message.text))
+  // ctx.reply(`Привет, ${ctx.message.text}!`))
   bot.on('sticker', (ctx) => ctx.reply('👍')) 
   bot.launch()
 
