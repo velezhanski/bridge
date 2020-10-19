@@ -11,12 +11,11 @@ if (envFound.error) {
 }
 
 export default {
-  /**
-   * Your favorite port
-   */
   port: parseInt(process.env.PORT, 10),
-
   telegram: {
-    apiKey: process.env.BOT_TOKEN
+    token: process.env.BOT_TOKEN
+  },
+  heroku: {
+    url: process.env.HEROKU_URL
   }
 };
