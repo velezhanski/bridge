@@ -11,6 +11,7 @@
   "author": "Alex Filipenko",
   "license": "ISC",
   "scripts": {
+    "prestart": "pnm run build",
     "build": "tsc",
     "heroku-postbuild": "npm run build",
     "start": "nodemon",
