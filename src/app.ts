@@ -12,10 +12,17 @@ async function startServer() {
   app.use(bot.webhookCallback(`/bot${config.telegram.token}`));
   
   bot.start((ctx) => ctx.reply('Добро пожаловать в сервис Bridge! Как вас зовут?'))
-  bot.on('message', (ctx) =>  ctx.reply(`Привет, друг!`))
+  bot.on('message', (ctx) =>  ctx.reply(`Привет, ${ctx.message.text}!`))
   bot.on('sticker', (ctx) => ctx.reply('👍')) 
-  bot.launch()
+  bot.launch({ polling: { timeout: 1 } })
 
+  setInterval(() => {
+    bot.stop(() => {
+      bot.launch({ polling: { timeout: 1 } })
+    })
+  }, 3000)
+
+  
   app.get('/', (req, res) => {
     res.send('Hello World!');
   });
