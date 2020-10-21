@@ -1,27 +1,22 @@
 import {Telegraf, Context as TelegrafContext} from 'telegraf';
 import {MenuTemplate, MenuMiddleware} from 'telegraf-inline-menu'
 import config from '../config';
-import {MongoClient} from 'mongodb';
+var MongoClient = require('mongodb').MongoClient;
+const uri = "mongodb+srv://admin:R@duga12@telegram.zqx1v.mongodb.net/Telegram?retryWrites=true&w=majority";
 
 export default class TelegramBotService {
   public async LaunchBotService(app) {
     const bot = new Telegraf(config.telegram.token)
     const users = []
 
-    bot.start((ctx) => this.checkUserStatus(ctx, users, bot))
+    bot.start((ctx) => this.checkUserStatus(ctx, bot))
     bot.launch()
 
     return { delivered: 1, status: 'ok' };
   }
 
   public registerUser(telegram, users, bot) {
-    const uri = "mongodb+srv://admin:<R@duga12>@telegram.zqx1v.mongodb.net/<dbname>?retryWrites=true&w=majority";
-    const client = new MongoClient(uri, { useNewUrlParser: true });
-    client.connect(err => {
-      const collection = client.db("test").collection("devices");
-      // perform actions on the collection object
-      client.close();
-    });
+    console.log("Register")
 
     const menu = new MenuTemplate<TelegrafContext>(() => `Эй! Я тебя не знаю!`)
 
@@ -29,9 +24,8 @@ export default class TelegramBotService {
       do: async ctx => {
         await ctx.reply('Как мне тебя называть?')
         bot.on('message', (ctx) =>  {
-          const user = {id: ctx.message.from.id, name: ctx.message.text}
-          users.push(user)
-          ctx.reply(`Приятно познакомиться ${user.name}`)
+          this.saveUser(ctx)
+          ctx.reply(`Приятно познакомиться, ${ctx.message.text}!`)
         })
         return false
       }
@@ -44,20 +38,46 @@ export default class TelegramBotService {
     bot.launch()
   }
 
-  public checkUserStatus(telegram, users, bot) {
-    console.log("Checking status")
-    var found = false;
-    for(var i = 0; i < users.length; i++) {
-      if (users[i].id == telegram.message.from.id) {
-          found = true;
-          break;
-      }
-    }
+  public saveUser(ctx) {
+    const client = new MongoClient(uri, { useNewUrlParser: true });
+    const user = {id: ctx.message.from.id, name: ctx.message.text}
 
-    if (found == true) {
-      telegram.reply(`Привет, ${telegram.message.from.first_name}`)
-    } else {
-      this.registerUser(telegram, users, bot)
-    }
+    client.connect(err => {
+      const collection = client.db("test").collection("users");
+      collection.insertOne(user, function(err, res) {
+        if (err) throw err;
+        console.log("1 document inserted");
+        client.close();
+      });
+      client.close();
+    });
+  }
+
+  public checkUserStatus(telegram, bot) {
+
+    const client = new MongoClient(uri, { useNewUrlParser: true });
+    var users =[]
+    var found = false;
+
+    client.connect(err => {
+      const collection = client.db("test").collection("users");
+      users = collection.find({}, { projection: { _id: 0, id: 1, name: 1 } }).toArray(function(err, result) {
+        if (err) throw err;
+        for(var i = 0; i < result.length; i++) {
+          if (result[i].id == telegram.message.from.id) {
+              found = true;
+              telegram.reply(`Привет, ${result[i].name}!`)
+              break;
+          }
+        }
+
+        if (found == false) {
+          this.registerUser(telegram, users, bot)
+        }
+        console.log(result);
+        client.close();
+      });
+      client.close();
+    });
   }
 }
